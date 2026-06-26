@@ -42,6 +42,9 @@ struct ShiftEditorScreen: View {
 
                     TextField("Выручка", text: $_revenueText)
                         .keyboardType(.decimalPad)
+                        .onChange(of: _revenueText) { _, value in
+                            sanitizeRevenueText(value)
+                        }
 
                     StatRow(title: "Оклад", value: MoneyFormatter.string(_baseSalary))
                     StatRow(title: "Процент", value: parsedRevenue.map { MoneyFormatter.string(ShiftCalculator.percentAmount(revenue: $0, percentRate: _percentRate)) } ?? "не заполнено")
@@ -88,9 +91,15 @@ struct ShiftEditorScreen: View {
 
     private func save() {
         if let shift = draft.shift {
+            guard _isWorkDay else {
+                modelContext.delete(shift)
+                dismiss()
+                return
+            }
+
             shift.date = DateHelper.calendar.startOfDay(for: draft.date)
-            shift.isWorkDay = _isWorkDay
-            shift.revenue = _isWorkDay ? parsedRevenue : nil
+            shift.isWorkDay = true
+            shift.revenue = parsedRevenue
             shift.percentRate = _percentRate
             shift.baseSalary = _baseSalary
             shift.updatedAt = Date()
@@ -106,6 +115,12 @@ struct ShiftEditorScreen: View {
         }
 
         dismiss()
+    }
+
+    private func sanitizeRevenueText(_ value: String) {
+        let sanitized = MoneyFormatter.sanitizedInput(value)
+        guard sanitized != value else { return }
+        _revenueText = sanitized
     }
 
     private func deleteShift() {

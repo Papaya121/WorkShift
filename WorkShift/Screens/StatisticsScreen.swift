@@ -2,6 +2,7 @@ import SwiftUI
 
 struct StatisticsScreen: View {
     let shifts: [Shift]
+    let settings: AppSettings
     @Binding var selectedMonth: Date
 
     private var workShifts: [Shift] {
@@ -11,6 +12,22 @@ struct StatisticsScreen: View {
 
     private var shiftsWithoutRevenue: [Shift] {
         workShifts.filter { $0.revenue == nil }.sorted { $0.date < $1.date }
+    }
+
+    private var pastShiftsWithoutRevenue: [Shift] {
+        shiftsWithoutRevenue.filter { startOfDay($0.date) < today }
+    }
+
+    private var todayShiftsWithoutRevenue: [Shift] {
+        shiftsWithoutRevenue.filter { DateHelper.calendar.isDate($0.date, inSameDayAs: Date()) }
+    }
+
+    private var futureShiftsWithoutRevenue: [Shift] {
+        shiftsWithoutRevenue.filter { startOfDay($0.date) > today }
+    }
+
+    private var today: Date {
+        DateHelper.calendar.startOfDay(for: Date())
     }
 
     var body: some View {
@@ -33,12 +50,43 @@ struct StatisticsScreen: View {
                         Text("Все рабочие смены заполнены")
                             .foregroundStyle(.secondary)
                     } else {
-                        ForEach(shiftsWithoutRevenue) { shift in
+                        StatRow(title: "Прошедшие", value: "\(pastShiftsWithoutRevenue.count)", valueColor: pastShiftsWithoutRevenue.isEmpty ? .secondary : .orange)
+                        StatRow(title: "Сегодня", value: todayStatusText, valueColor: todayShiftsWithoutRevenue.isEmpty ? .secondary : todayStatusColor)
+                        StatRow(title: "Плановые", value: "\(futureShiftsWithoutRevenue.count)", valueColor: futureShiftsWithoutRevenue.isEmpty ? .secondary : .blue)
+                    }
+                }
+
+                if !pastShiftsWithoutRevenue.isEmpty {
+                    Section("Прошедшие без выручки") {
+                        ForEach(pastShiftsWithoutRevenue) { shift in
+                            Text(DateHelper.fullDate(shift.date))
+                        }
+                    }
+                }
+
+                if !todayShiftsWithoutRevenue.isEmpty {
+                    Section("Сегодня") {
+                        ForEach(todayShiftsWithoutRevenue) { shift in
+                            HStack {
+                                Text(DateHelper.fullDate(shift.date))
+                                Spacer()
+                                Text(todayShiftStatusText(for: shift))
+                                    .foregroundStyle(todayShiftStatusColor(for: shift))
+                            }
+                        }
+                    }
+                }
+
+                if !futureShiftsWithoutRevenue.isEmpty {
+                    Section("Плановые смены") {
+                        ForEach(futureShiftsWithoutRevenue) { shift in
                             Text(DateHelper.fullDate(shift.date))
                         }
                     }
                 }
             }
+            .monthSwipeGesture(month: $selectedMonth)
+            .animation(.easeInOut(duration: 0.22), value: selectedMonth)
             .navigationTitle("Статистика")
         }
     }
@@ -57,5 +105,45 @@ struct StatisticsScreen: View {
 
     private var totalIncome: Decimal {
         workShifts.reduce(Decimal(0)) { $0 + $1.income }
+    }
+
+    private var todayStatusText: String {
+        guard let shift = todayShiftsWithoutRevenue.first else { return "0" }
+        return todayShiftStatusText(for: shift)
+    }
+
+    private var todayStatusColor: Color {
+        guard let shift = todayShiftsWithoutRevenue.first else { return .secondary }
+        return todayShiftStatusColor(for: shift)
+    }
+
+    private func todayShiftStatusText(for shift: Shift) -> String {
+        switch ShiftStatusResolver.revenueStatus(for: shift, on: shift.date, settings: settings) {
+        case .missingRevenue:
+            return "Выручка ожидается"
+        case .todayPending:
+            return "Смена сегодня"
+        case .planned:
+            return "Плановая смена"
+        case .filled:
+            return "Заполнено"
+        case .notWorkDay:
+            return "Не рабочий день"
+        }
+    }
+
+    private func todayShiftStatusColor(for shift: Shift) -> Color {
+        switch ShiftStatusResolver.revenueStatus(for: shift, on: shift.date, settings: settings) {
+        case .missingRevenue:
+            return .orange
+        case .todayPending, .planned:
+            return .blue
+        case .filled, .notWorkDay:
+            return .secondary
+        }
+    }
+
+    private func startOfDay(_ date: Date) -> Date {
+        DateHelper.calendar.startOfDay(for: date)
     }
 }

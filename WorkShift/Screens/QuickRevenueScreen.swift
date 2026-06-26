@@ -22,6 +22,9 @@ struct QuickRevenueScreen: View {
                     .font(.headline)
                 TextField("Выручка за сегодня", text: $_revenueText)
                     .keyboardType(.decimalPad)
+                    .onChange(of: _revenueText) { _, value in
+                        sanitizeRevenueText(value)
+                    }
             }
 
             Section("Расчет") {
@@ -49,5 +52,11 @@ struct QuickRevenueScreen: View {
                 }
             }
         }
+    }
+
+    private func sanitizeRevenueText(_ value: String) {
+        let sanitized = MoneyFormatter.sanitizedInput(value)
+        guard sanitized != value else { return }
+        _revenueText = sanitized
     }
 }

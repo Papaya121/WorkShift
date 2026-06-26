@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ShiftListScreen: View {
     let shifts: [Shift]
+    let settings: AppSettings
     @Binding var selectedMonth: Date
     @Binding var editingDraft: ShiftDraft?
 
@@ -28,12 +29,14 @@ struct ShiftListScreen: View {
                         Button {
                             editingDraft = ShiftDraft(shift: shift)
                         } label: {
-                            ShiftRow(shift: shift)
+                            ShiftRow(shift: shift, settings: settings)
                         }
                         .buttonStyle(.plain)
                     }
                 }
             }
+            .monthSwipeGesture(month: $selectedMonth)
+            .animation(.easeInOut(duration: 0.22), value: selectedMonth)
             .navigationTitle("Список смен")
         }
     }

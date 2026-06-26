@@ -28,6 +28,7 @@ struct ContentView: View {
 
             ShiftListScreen(
                 shifts: shifts,
+                settings: currentSettings(),
                 selectedMonth: $_selectedMonth,
                 editingDraft: $_editingDraft
             )
@@ -35,7 +36,7 @@ struct ContentView: View {
                 Label("Список", systemImage: "list.bullet.rectangle")
             }
 
-            StatisticsScreen(shifts: shifts, selectedMonth: $_selectedMonth)
+            StatisticsScreen(shifts: shifts, settings: currentSettings(), selectedMonth: $_selectedMonth)
                 .tabItem {
                     Label("Статистика", systemImage: "chart.bar")
                 }
@@ -82,17 +83,12 @@ struct ContentView: View {
     }
 
     private func showQuickInputIfNeeded() {
-        guard isQuickInputTime else { return }
+        let settings = currentSettings()
+        guard ShiftStatusResolver.isRevenueExpected(settings: settings) else { return }
         let today = DateHelper.calendar.startOfDay(for: Date())
         guard let shift = shifts.first(where: { DateHelper.isSameDay($0.date, today) }) else { return }
         guard shift.isWorkDay && shift.revenue == nil else { return }
         _quickShift = shift
-    }
-
-    private var isQuickInputTime: Bool {
-        let components = DateHelper.calendar.dateComponents([.hour, .minute], from: Date())
-        guard let hour = components.hour, let minute = components.minute else { return false }
-        return hour == 23 || (hour == 22 && minute >= 20)
     }
 }
 

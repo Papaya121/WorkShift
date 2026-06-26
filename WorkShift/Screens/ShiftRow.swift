@@ -2,6 +2,11 @@ import SwiftUI
 
 struct ShiftRow: View {
     let shift: Shift
+    let settings: AppSettings
+
+    private var status: ShiftRevenueStatus {
+        ShiftStatusResolver.revenueStatus(for: shift, on: shift.date, settings: settings)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -31,35 +36,28 @@ struct ShiftRow: View {
             return "Выручка: \(MoneyFormatter.string(revenue))"
         }
 
-        if isFutureShift {
+        switch status {
+        case .planned:
             return "Плановая смена"
-        }
-
-        if isTodayBeforeRevenueCutoff {
+        case .todayPending:
             return "Смена сегодня"
+        case .missingRevenue:
+            return "Выручка не заполнена"
+        case .filled, .notWorkDay:
+            return ""
         }
-
-        return "Выручка не заполнена"
     }
 
     private var revenueStatusColor: Color {
-        if shift.hasRevenue {
+        switch status {
+        case .filled:
+            return .secondary
+        case .planned, .todayPending:
+            return .blue
+        case .missingRevenue:
+            return .orange
+        case .notWorkDay:
             return .secondary
         }
-
-        return isFutureShift || isTodayBeforeRevenueCutoff ? .blue : .orange
-    }
-
-    private var isFutureShift: Bool {
-        let shiftDay = DateHelper.calendar.startOfDay(for: shift.date)
-        let today = DateHelper.calendar.startOfDay(for: Date())
-        return shiftDay > today
-    }
-
-    private var isTodayBeforeRevenueCutoff: Bool {
-        guard DateHelper.calendar.isDateInToday(shift.date) else { return false }
-        let components = DateHelper.calendar.dateComponents([.hour, .minute], from: Date())
-        guard let hour = components.hour, let minute = components.minute else { return false }
-        return hour < 22 || (hour == 22 && minute < 20)
     }
 }
