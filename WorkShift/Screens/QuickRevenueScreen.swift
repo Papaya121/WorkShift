@@ -4,6 +4,7 @@ import SwiftData
 struct QuickRevenueScreen: View {
     @Environment(\.dismiss) private var dismiss
     @Bindable var shift: Shift
+    let onSaved: () -> Void
     @State private var _revenueText = ""
 
     private var revenue: Decimal? {
@@ -37,6 +38,7 @@ struct QuickRevenueScreen: View {
                 Button("Сохранить выручку") {
                     shift.revenue = revenue
                     shift.updatedAt = Date()
+                    onSaved()
                     dismiss()
                 }
                 .fontWeight(.semibold)

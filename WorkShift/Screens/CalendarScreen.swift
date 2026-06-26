@@ -7,6 +7,7 @@ struct CalendarScreen: View {
     let settings: AppSettings
     @Binding var selectedMonth: Date
     @Binding var editingDraft: ShiftDraft?
+    let onShiftChanged: () -> Void
 
     private let _columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 7)
     private let _weekdays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
@@ -108,6 +109,7 @@ struct CalendarScreen: View {
             shift.isWorkDay = true
             shift.updatedAt = Date()
         }
+        onShiftChanged()
     }
 }
 

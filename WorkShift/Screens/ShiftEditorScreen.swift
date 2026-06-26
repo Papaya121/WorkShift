@@ -5,6 +5,7 @@ struct ShiftEditorScreen: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     let draft: ShiftDraft
+    let onSaved: () -> Void
     @State private var _isWorkDay = true
     @State private var _percentRate = 5
     @State private var _baseSalary = Decimal(2000)
@@ -93,6 +94,7 @@ struct ShiftEditorScreen: View {
         if let shift = draft.shift {
             guard _isWorkDay else {
                 modelContext.delete(shift)
+                onSaved()
                 dismiss()
                 return
             }
@@ -114,6 +116,7 @@ struct ShiftEditorScreen: View {
             modelContext.insert(shift)
         }
 
+        onSaved()
         dismiss()
     }
 
@@ -128,6 +131,7 @@ struct ShiftEditorScreen: View {
             modelContext.delete(shift)
         }
 
+        onSaved()
         dismiss()
     }
 }

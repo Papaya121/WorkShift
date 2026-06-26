@@ -3,6 +3,7 @@ import SwiftData
 
 struct SettingsScreen: View {
     @Bindable var settings: AppSettings
+    let onSettingsChanged: () -> Void
     @State private var _baseSalaryText = ""
 
     private var reminderTime: Binding<Date> {
@@ -15,6 +16,7 @@ struct SettingsScreen: View {
             let components = DateHelper.calendar.dateComponents([.hour, .minute], from: date)
             settings.revenueReminderHour = components.hour ?? 22
             settings.revenueReminderMinute = components.minute ?? 20
+            onSettingsChanged()
         }
     }
 

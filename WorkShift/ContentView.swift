@@ -20,7 +20,8 @@ struct ContentView: View {
                 shifts: shifts,
                 settings: currentSettings(),
                 selectedMonth: $_selectedMonth,
-                editingDraft: $_editingDraft
+                editingDraft: $_editingDraft,
+                onShiftChanged: refreshNotifications
             )
             .tabItem {
                 Label("Календарь", systemImage: "calendar")
@@ -41,29 +42,31 @@ struct ContentView: View {
                     Label("Статистика", systemImage: "chart.bar")
                 }
 
-            SettingsScreen(settings: currentSettings())
+            SettingsScreen(settings: currentSettings(), onSettingsChanged: refreshNotifications)
                 .tabItem {
                     Label("Настройки", systemImage: "gearshape")
                 }
         }
         .sheet(item: $_editingDraft) { draft in
             NavigationStack {
-                ShiftEditorScreen(draft: draft)
+                ShiftEditorScreen(draft: draft, onSaved: refreshNotifications)
             }
         }
         .sheet(item: $_quickShift) { shift in
             NavigationStack {
-                QuickRevenueScreen(shift: shift)
+                QuickRevenueScreen(shift: shift, onSaved: refreshNotifications)
             }
         }
         .onAppear {
             ensureSettings()
             showQuickInputIfNeeded()
+            refreshNotifications()
         }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
             ensureSettings()
             showQuickInputIfNeeded()
+            refreshNotifications()
         }
     }
 
@@ -89,6 +92,10 @@ struct ContentView: View {
         guard let shift = shifts.first(where: { DateHelper.isSameDay($0.date, today) }) else { return }
         guard shift.isWorkDay && shift.revenue == nil else { return }
         _quickShift = shift
+    }
+
+    private func refreshNotifications() {
+        NotificationService.refreshNotifications(shifts: shifts, settings: currentSettings())
     }
 }
 
