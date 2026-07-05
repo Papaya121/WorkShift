@@ -13,7 +13,7 @@ struct StatisticsScreen: View {
     private var shiftsWithNotes: [Shift] {
         let interval = DateHelper.monthInterval(for: selectedMonth)
         return shifts
-            .filter { $0.hasNote && $0.date >= interval.start && $0.date < interval.end }
+            .filter { ($0.hasNote || !$0.adjustmentItems.isEmpty) && $0.date >= interval.start && $0.date < interval.end }
             .sorted { $0.date < $1.date }
     }
 
@@ -118,9 +118,26 @@ struct StatisticsScreen: View {
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(DateHelper.fullDate(shift.date))
                                     .font(.subheadline.weight(.semibold))
-                                Text(shift.note ?? "")
-                                    .font(.body)
-                                    .foregroundStyle(.secondary)
+
+                                if shift.hasNote {
+                                    Text(shift.note ?? "")
+                                        .font(.body)
+                                        .foregroundStyle(.secondary)
+                                }
+
+                                ForEach(shift.adjustmentItems) { item in
+                                    HStack(spacing: 8) {
+                                        Text(item.title)
+                                            .foregroundStyle(.secondary)
+
+                                        Spacer()
+
+                                        Text(adjustmentAmountText(for: item))
+                                            .fontWeight(.semibold)
+                                            .foregroundStyle(item.kind == .expense ? .red : .primary)
+                                    }
+                                    .font(.subheadline)
+                                }
                             }
                             .padding(.vertical, 4)
                         }
@@ -202,6 +219,15 @@ struct StatisticsScreen: View {
 
     private func startOfDay(_ date: Date) -> Date {
         DateHelper.calendar.startOfDay(for: date)
+    }
+
+    private func adjustmentAmountText(for item: ShiftAdjustment) -> String {
+        switch item.kind {
+        case .income:
+            return MoneyFormatter.string(item.amount)
+        case .expense:
+            return "-\(MoneyFormatter.string(item.amount))"
+        }
     }
 
     private func color(for legend: ShiftLegend) -> Color {

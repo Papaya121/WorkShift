@@ -107,6 +107,7 @@ struct CalendarScreen: View {
                 shift.isWorkDay = false
                 shift.revenue = nil
                 shift.legendID = nil
+                shift.adjustmentItems = []
                 shift.updatedAt = Date()
             } else {
                 modelContext.delete(shift)

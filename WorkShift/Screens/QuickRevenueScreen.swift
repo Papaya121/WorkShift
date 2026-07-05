@@ -13,7 +13,12 @@ struct QuickRevenueScreen: View {
 
     private var income: Decimal {
         guard let revenue else { return shift.baseSalary }
-        return ShiftCalculator.income(baseSalary: shift.baseSalary, revenue: revenue, percentRate: shift.percentRate)
+        return ShiftCalculator.income(
+            baseSalary: shift.baseSalary,
+            revenue: revenue,
+            percentRate: shift.percentRate,
+            adjustmentsTotal: shift.adjustmentTotal
+        )
     }
 
     var body: some View {

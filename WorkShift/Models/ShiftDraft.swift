@@ -8,6 +8,7 @@ struct ShiftDraft: Identifiable {
     let revenue: Decimal?
     let note: String
     let legendID: UUID?
+    let adjustmentItems: [ShiftAdjustment]
     let percentRate: Int
     let baseSalary: Decimal
 
@@ -19,6 +20,7 @@ struct ShiftDraft: Identifiable {
         self.revenue = shift.revenue
         self.note = shift.note ?? ""
         self.legendID = shift.legendID
+        self.adjustmentItems = shift.adjustmentItems
         self.percentRate = shift.percentRate
         self.baseSalary = shift.baseSalary
     }
@@ -31,6 +33,7 @@ struct ShiftDraft: Identifiable {
         self.revenue = nil
         self.note = ""
         self.legendID = nil
+        self.adjustmentItems = []
         self.percentRate = settings.defaultPercentRate
         self.baseSalary = settings.baseSalary
     }
