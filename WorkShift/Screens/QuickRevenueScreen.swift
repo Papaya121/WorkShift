@@ -34,16 +34,6 @@ struct QuickRevenueScreen: View {
                 StatRow(title: "Итого", value: MoneyFormatter.string(income), valueColor: .accentColor)
             }
 
-            Section {
-                Button("Сохранить выручку") {
-                    shift.revenue = revenue
-                    shift.updatedAt = Date()
-                    onSaved()
-                    dismiss()
-                }
-                .fontWeight(.semibold)
-                .disabled(revenue == nil)
-            }
         }
         .navigationTitle("Выручка")
         .navigationBarTitleDisplayMode(.inline)
@@ -53,7 +43,23 @@ struct QuickRevenueScreen: View {
                     dismiss()
                 }
             }
+
+            ToolbarItem(placement: .confirmationAction) {
+                Button {
+                    save()
+                } label: {
+                    Image(systemName: "checkmark")
+                }
+                .disabled(revenue == nil)
+            }
         }
+    }
+
+    private func save() {
+        shift.revenue = revenue
+        shift.updatedAt = Date()
+        onSaved()
+        dismiss()
     }
 
     private func sanitizeRevenueText(_ value: String) {

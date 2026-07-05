@@ -45,9 +45,22 @@ struct CalendarDayCell: View {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .stroke(DateHelper.calendar.isDateInToday(date) ? Color.accentColor : Color.clear, lineWidth: 2)
         }
+        .overlay(alignment: .topTrailing) {
+            if shift?.hasNote == true {
+                Image(systemName: "note.text")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(5)
+                    .accessibilityLabel("Есть заметка")
+            }
+        }
     }
 
     private var backgroundColor: Color {
+        if let shift, shift.isWorkDay, let legend = settings.legend(id: shift.legendID) {
+            return color(for: legend).opacity(0.28)
+        }
+
         switch status {
         case .notWorkDay:
             return Color(.secondarySystemGroupedBackground)
@@ -58,5 +71,13 @@ struct CalendarDayCell: View {
         case .planned, .todayPending:
             return Color.blue.opacity(0.18)
         }
+    }
+
+    private func color(for legend: ShiftLegend) -> Color {
+        Color(
+            red: Double(legend.red) / 255,
+            green: Double(legend.green) / 255,
+            blue: Double(legend.blue) / 255
+        )
     }
 }

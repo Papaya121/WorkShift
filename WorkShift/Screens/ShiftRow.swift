@@ -27,6 +27,17 @@ struct ShiftRow: View {
                     .fontWeight(.semibold)
             }
             .font(.subheadline)
+
+            if let legend = settings.legend(id: shift.legendID) {
+                Label {
+                    Text(legend.title)
+                } icon: {
+                    Circle()
+                        .fill(color(for: legend))
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
         }
         .padding(.vertical, 4)
     }
@@ -59,5 +70,13 @@ struct ShiftRow: View {
         case .notWorkDay:
             return .secondary
         }
+    }
+
+    private func color(for legend: ShiftLegend) -> Color {
+        Color(
+            red: Double(legend.red) / 255,
+            green: Double(legend.green) / 255,
+            blue: Double(legend.blue) / 255
+        )
     }
 }

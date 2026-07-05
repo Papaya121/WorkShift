@@ -103,7 +103,14 @@ struct CalendarScreen: View {
 
     private func toggleWorkDay(on date: Date) {
         if let shift = shift(on: date), shift.isWorkDay {
-            modelContext.delete(shift)
+            if shift.hasNote {
+                shift.isWorkDay = false
+                shift.revenue = nil
+                shift.legendID = nil
+                shift.updatedAt = Date()
+            } else {
+                modelContext.delete(shift)
+            }
         } else {
             let shift = existingOrNewShift(on: date)
             shift.isWorkDay = true

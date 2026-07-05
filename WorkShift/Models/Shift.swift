@@ -7,6 +7,8 @@ final class Shift {
     var date: Date
     var isWorkDay: Bool
     var revenue: Decimal?
+    var note: String?
+    var legendID: UUID?
     var percentRate: Int
     var baseSalary: Decimal
     var createdAt: Date
@@ -17,6 +19,8 @@ final class Shift {
         date: Date,
         isWorkDay: Bool = true,
         revenue: Decimal? = nil,
+        note: String? = nil,
+        legendID: UUID? = nil,
         percentRate: Int = 5,
         baseSalary: Decimal = 2000,
         createdAt: Date = Date(),
@@ -26,6 +30,8 @@ final class Shift {
         self.date = Calendar.current.startOfDay(for: date)
         self.isWorkDay = isWorkDay
         self.revenue = revenue
+        self.note = note
+        self.legendID = legendID
         self.percentRate = percentRate
         self.baseSalary = baseSalary
         self.createdAt = createdAt
@@ -44,5 +50,10 @@ final class Shift {
 
     var hasRevenue: Bool {
         revenue != nil
+    }
+
+    var hasNote: Bool {
+        guard let note else { return false }
+        return !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }

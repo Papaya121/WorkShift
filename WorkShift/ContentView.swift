@@ -49,7 +49,7 @@ struct ContentView: View {
         }
         .sheet(item: $_editingDraft) { draft in
             NavigationStack {
-                ShiftEditorScreen(draft: draft, onSaved: refreshNotifications)
+                ShiftEditorScreen(draft: draft, settings: currentSettings(), onSaved: refreshNotifications)
             }
         }
         .sheet(item: $_quickShift) { shift in

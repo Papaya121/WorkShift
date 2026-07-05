@@ -10,6 +10,13 @@ struct StatisticsScreen: View {
         return shifts.filter { $0.isWorkDay && $0.date >= interval.start && $0.date < interval.end }
     }
 
+    private var shiftsWithNotes: [Shift] {
+        let interval = DateHelper.monthInterval(for: selectedMonth)
+        return shifts
+            .filter { $0.hasNote && $0.date >= interval.start && $0.date < interval.end }
+            .sorted { $0.date < $1.date }
+    }
+
     private var shiftsWithoutRevenue: [Shift] {
         workShifts.filter { $0.revenue == nil }.sorted { $0.date < $1.date }
     }
@@ -43,6 +50,26 @@ struct StatisticsScreen: View {
                     StatRow(title: "Сумма процентов", value: MoneyFormatter.string(totalPercentAmount))
                     StatRow(title: "Сумма окладов", value: MoneyFormatter.string(totalBaseSalary))
                     StatRow(title: "Доход за месяц", value: MoneyFormatter.string(totalIncome), valueColor: .accentColor)
+                }
+
+                if !legendIncomeRows.isEmpty {
+                    Section("По легендам") {
+                        ForEach(legendIncomeRows) { row in
+                            HStack(spacing: 10) {
+                                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                    .fill(row.color)
+                                    .frame(width: 20, height: 20)
+
+                                Text(row.title)
+                                    .foregroundStyle(.secondary)
+
+                                Spacer()
+
+                                Text(MoneyFormatter.string(row.income))
+                                    .fontWeight(.semibold)
+                            }
+                        }
+                    }
                 }
 
                 Section("Без выручки") {
@@ -84,6 +111,21 @@ struct StatisticsScreen: View {
                         }
                     }
                 }
+
+                if !shiftsWithNotes.isEmpty {
+                    Section("Заметки") {
+                        ForEach(shiftsWithNotes) { shift in
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(DateHelper.fullDate(shift.date))
+                                    .font(.subheadline.weight(.semibold))
+                                Text(shift.note ?? "")
+                                    .font(.body)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                }
             }
             .monthSwipeGesture(month: $selectedMonth)
             .animation(.easeInOut(duration: 0.22), value: selectedMonth)
@@ -105,6 +147,21 @@ struct StatisticsScreen: View {
 
     private var totalIncome: Decimal {
         workShifts.reduce(Decimal(0)) { $0 + $1.income }
+    }
+
+    private var legendIncomeRows: [LegendIncomeRow] {
+        settings.shiftLegends.map { legend in
+            let income = workShifts
+                .filter { $0.legendID == legend.id }
+                .reduce(Decimal(0)) { $0 + $1.income }
+
+            return LegendIncomeRow(
+                id: legend.id,
+                title: legend.title,
+                color: color(for: legend),
+                income: income
+            )
+        }
     }
 
     private var todayStatusText: String {
@@ -146,4 +203,19 @@ struct StatisticsScreen: View {
     private func startOfDay(_ date: Date) -> Date {
         DateHelper.calendar.startOfDay(for: date)
     }
+
+    private func color(for legend: ShiftLegend) -> Color {
+        Color(
+            red: Double(legend.red) / 255,
+            green: Double(legend.green) / 255,
+            blue: Double(legend.blue) / 255
+        )
+    }
+}
+
+private struct LegendIncomeRow: Identifiable {
+    let id: UUID
+    let title: String
+    let color: Color
+    let income: Decimal
 }

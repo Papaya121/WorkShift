@@ -6,6 +6,8 @@ struct ShiftDraft: Identifiable {
     let date: Date
     let isWorkDay: Bool
     let revenue: Decimal?
+    let note: String
+    let legendID: UUID?
     let percentRate: Int
     let baseSalary: Decimal
 
@@ -15,6 +17,8 @@ struct ShiftDraft: Identifiable {
         self.date = shift.date
         self.isWorkDay = shift.isWorkDay
         self.revenue = shift.revenue
+        self.note = shift.note ?? ""
+        self.legendID = shift.legendID
         self.percentRate = shift.percentRate
         self.baseSalary = shift.baseSalary
     }
@@ -25,6 +29,8 @@ struct ShiftDraft: Identifiable {
         self.date = DateHelper.calendar.startOfDay(for: date)
         self.isWorkDay = true
         self.revenue = nil
+        self.note = ""
+        self.legendID = nil
         self.percentRate = settings.defaultPercentRate
         self.baseSalary = settings.baseSalary
     }
